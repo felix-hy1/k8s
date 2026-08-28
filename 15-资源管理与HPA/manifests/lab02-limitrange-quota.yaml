@@ -1,0 +1,28 @@
+# 实验 2:LimitRange(默认值+上下限)与 ResourceQuota(命名空间配额)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: default-limits
+  namespace: res-lab
+spec:
+  limits:
+    - type: Container
+      # 没写 resources 的容器自动注入这套默认值
+      default: { cpu: 200m, memory: 256Mi }              # 默认 limits
+      defaultRequest: { cpu: 100m, memory: 128Mi }       # 默认 requests
+      max: { cpu: "1", memory: 1Gi }                     # 单容器上限
+      min: { cpu: 10m, memory: 16Mi }                    # 单容器下限
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ns-quota
+  namespace: res-lab
+spec:
+  hard:
+    requests.cpu: "2"            # 该 ns 所有 Pod requests 总和 ≤ 2 核
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    pods: "10"                   # Pod 总数 ≤ 10
+    services.loadbalancers: "0"  # 禁止建 LB 类型 Service

@@ -1,0 +1,45 @@
+# 实验 1:CPU 节流 与 内存 OOM 亲测
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: res-lab
+---
+# CPU 烧满:limit 100m(0.1 核)但脚本死循环 → 被节流,容器不会被杀
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cpu-burn
+  namespace: res-lab
+spec:
+  containers:
+    - name: burn
+      image: busybox:1.36
+      command: ["sh", "-c", "while true; do :; done"]   # 纯 CPU 死循环
+      resources:
+        requests: { cpu: 50m, memory: 32Mi }
+        limits: { cpu: 100m, memory: 64Mi }             # 最多用 0.1 核
+---
+# 内存递增:每秒多占 5MB,越过 100Mi limit → OOMKilled → 重启 → 循环
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mem-burn
+  namespace: res-lab
+spec:
+  restartPolicy: Always
+  containers:
+    - name: grow
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          i=1
+          while true; do
+            # 生成 i MB 的数据放内存变量里
+            eval "chunk$i=\$(head -c $((1024*1024)) /dev/zero | base64)"
+            echo "holding ${i}MB"; i=$((i+1)); sleep 1
+          done
+      resources:
+        requests: { cpu: 10m, memory: 32Mi }
+        limits: { cpu: 50m, memory: 100Mi }             # 越界即被杀

@@ -1,0 +1,21 @@
+# 实验 3:TLS 终结(证书来自 scripts/gen-tls.sh 创建的 Secret demo-tls)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tls-routing
+  namespace: ing-lab
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"   # http 自动跳 https
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [demo.local]
+      secretName: demo-tls        # type: kubernetes.io/tls 的 Secret
+  rules:
+    - host: demo.local
+      http:
+        paths:
+          - path: /app1(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service: { name: app1, port: { number: 80 } }

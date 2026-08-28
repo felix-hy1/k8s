@@ -1,0 +1,59 @@
+# 实验 2:Pod 亲和(贴着跑)与反亲和(散着跑)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+  namespace: sched-lab
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: cache } }
+  template:
+    metadata: { labels: { app: cache } }
+    spec:
+      containers:
+        - { name: redis, image: redis:7-alpine }
+---
+# podAffinity:web 要与 cache 同节点(低延迟访问缓存)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: with-cache
+  namespace: sched-lab
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: with-cache } }
+  template:
+    metadata: { labels: { app: with-cache } }
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels: { app: cache }        # 找带这个标签的 Pod
+              topologyKey: kubernetes.io/hostname  # 拓扑域 = 同一节点
+      containers:
+        - { name: web, image: nginx:1.27 }
+---
+# podAntiAffinity:3 副本强制分散到 3 个节点(高可用布局)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spread-web
+  namespace: sched-lab
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: spread-web } }
+  template:
+    metadata: { labels: { app: spread-web } }
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels: { app: spread-web }
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: web
+          image: nginx:1.27
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }

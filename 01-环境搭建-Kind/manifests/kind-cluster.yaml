@@ -1,0 +1,25 @@
+# kind 学习集群:1 控制面 + 2 工作节点
+# 创建:kind create cluster --config kind-cluster.yaml --wait 120s
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: k8s-learning
+nodes:
+  # 控制面节点:承载 apiserver/etcd/scheduler/controller-manager
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"   # ingress-nginx kind 清单要求的标签
+    # 把宿主机(WSL2)端口映射到控制面容器,供 Ingress/LB 实验使用
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+  # 工作节点:运行业务 Pod
+  - role: worker
+  - role: worker

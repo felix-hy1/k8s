@@ -1,0 +1,43 @@
+# 实验 1:DaemonSet —— 每节点一个的"节点心跳"守护进程
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ds-lab
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-heartbeat
+  namespace: ds-lab
+  labels:
+    app: node-heartbeat
+spec:
+  selector:
+    matchLabels: { app: node-heartbeat }
+  template:
+    metadata:
+      labels: { app: node-heartbeat }
+    spec:
+      tolerations:
+        # 这两条容忍让 DS 也能在控制面节点运行(控制面默认有 NoSchedule 污点)
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master        # 旧版本污点名,兼容用
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: heartbeat
+          image: busybox:1.36
+          command: ["sh", "-c", "while true; do echo \"heartbeat from $(hostname) at $(date)\" >> /var/heartbeat/node-heartbeat.log; sleep 10; done"]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 50m, memory: 32Mi }
+          volumeMounts:
+            - name: heartbeat-dir
+              mountPath: /var/heartbeat
+      volumes:
+        - name: heartbeat-dir
+          hostPath:                       # 直接写节点(kinda 容器)的 /tmp
+            path: /tmp
+            type: DirectoryOrCreate

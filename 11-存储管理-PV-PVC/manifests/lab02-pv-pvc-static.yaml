@@ -1,0 +1,75 @@
+# 实验 2:静态供给 —— 手工创建 PV,再由 PVC 按需绑定
+# 前置:先执行 scripts/prepare-pv-dirs.sh 在节点上建目录
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-manual-1
+  labels:
+    tier: gold
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain      # PVC 删除后 PV 保留(Released),人工处置
+  storageClassName: manual
+  hostPath:
+    path: /data/pv1                          # worker 节点上的目录
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-manual-2
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /data/pv2
+    type: DirectoryOrCreate
+---
+# PVC:5Gi 请求,会绑定到 pv-manual-1(容量≥请求即可绑定,多给不退)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-small
+  namespace: stor-lab
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: manual                   # 与 PV 的 storageClassName 对应才匹配
+  resources:
+    requests:
+      storage: 5Gi
+---
+# 故意要 50Gi → 没有能满足的 PV → Pending
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-pending-demo
+  namespace: stor-lab
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 50Gi
+---
+# 使用 pvc-small 的 Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pv-user
+  namespace: stor-lab
+spec:
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: pvc-small
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "echo hello > /data/a.txt; ls /data; sleep 3600"]
+      volumeMounts:
+        - { name: data, mountPath: /data }

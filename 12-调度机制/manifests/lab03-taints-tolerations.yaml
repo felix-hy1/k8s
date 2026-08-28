@@ -1,0 +1,26 @@
+# 实验 3:污点(taint)与容忍(toleration)
+# 前置:kubectl taint node k8s-learning-worker2 team=ml:NoSchedule
+apiVersion: v1
+kind: Pod
+metadata:
+  name: normal-pod
+  namespace: sched-lab
+spec:
+  containers:
+    - { name: app, image: nginx:1.27 }   # 不容忍污点 → 只能落别的节点
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tolerant-pod
+  namespace: sched-lab
+spec:
+  tolerations:
+    - key: "team"                 # 精确匹配 key+value+effect
+      operator: "Equal"
+      value: "ml"
+      effect: "NoSchedule"
+    # 宽松写法:容忍一切污点(仅自用,生产勿用)
+    # - operator: "Exists"
+  containers:
+    - { name: app, image: nginx:1.27 }   # 可以落 worker2

@@ -1,0 +1,10 @@
+# 实验 3:默认拒绝所有入口流量(零信任基线)
+# 选中 net-lab 下"所有 Pod"(空 podSelector = 全选)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: net-lab
+spec:
+  podSelector: {}          # 空 = 命中命名空间内全部 Pod
+  policyTypes: ["Ingress"] # 选中后,未显式放行的入口流量全部拒绝

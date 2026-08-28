@@ -1,0 +1,41 @@
+# 实验 1:Deployment 基本发布 + 滚动更新
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: deploy-lab
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: deploy-lab
+  labels:
+    app: web
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5          # 保留 5 个历史版本(旧 RS)
+  selector:
+    matchLabels:
+      app: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1                  # 滚动期间最多多出 1 个 Pod
+      maxUnavailable: 1            # 滚动期间最多不可用 1 个
+  template:
+    metadata:
+      labels:
+        app: web                  # 必须匹配上面的 selector
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27       # 实验 1 中会被改成 1.28
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 100m, memory: 128Mi }

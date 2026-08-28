@@ -1,0 +1,29 @@
+# 实验 3:初始化容器
+# init1 → init2 严格串行;全部成功后主容器才启动
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-demo
+  namespace: pod-lab
+spec:
+  volumes:
+    - name: workdir
+      emptyDir: {}
+  initContainers:
+    - name: step1-download
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'data from init step1' > /work/index.html"]
+      volumeMounts:
+        - name: workdir
+          mountPath: /work
+    - name: step2-wait-db          # 真实场景:nslookup/curl 等待依赖服务就绪
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'waiting...'; sleep 10; echo 'dependency ready'"]
+  containers:
+    - name: nginx
+      image: nginx:1.27
+      volumeMounts:
+        - name: workdir
+          mountPath: /usr/share/nginx/html   # 用 init 容器准备好的内容
+      ports:
+        - containerPort: 80

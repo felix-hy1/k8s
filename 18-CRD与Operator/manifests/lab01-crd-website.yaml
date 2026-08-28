@@ -1,0 +1,44 @@
+# 实验 1:注册自定义资源类型 Website(apps.example.com/v1)
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: websites.apps.example.com      # 命名固定:<复数>.<group>
+spec:
+  group: apps.example.com              # API 组
+  scope: Namespaced                    # Namespaced | Cluster
+  names:
+    plural: websites                   # URL 用复数
+    singular: website
+    kind: Website                      # YAML 里的 kind
+    shortNames: ["web"]                # kubectl get web
+  versions:
+    - name: v1
+      served: true                     # 是否对外提供
+      storage: true                    # 只能有一个 storage 版本
+      schema:
+        openAPIV3Schema:               # v1 CRD 必须提供结构化 schema
+          type: object
+          properties:
+            spec:
+              type: object
+              required: ["image"]      # 必填字段校验(apiserver 直接拒绝违规 CR)
+              properties:
+                image:
+                  type: string
+                replicas:
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+                  default: 1
+                port:
+                  type: integer
+                  default: 80
+            status:                    # 供控制器回写
+              type: object
+              properties:
+                readyReplicas:
+                  type: integer
+                phase:
+                  type: string
+      subresources:
+        status: {}                     # 开启 /status 子资源,status 与 spec 分离更新

@@ -1,0 +1,44 @@
+# 实验 2:ConfigMap → Volume 挂载(每键一个文件,支持热更新)
+# 前置:先按 README 用 files/ 目录创建 app-conf 这个 ConfigMap
+apiVersion: v1
+kind: Pod
+metadata:
+  name: conf-demo
+  namespace: cfg-lab
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "ls -l /etc/app; cat /etc/app/app.properties; sleep 3600"]
+      volumeMounts:
+        - name: conf
+          mountPath: /etc/app       # 目录下出现 app.properties / nginx.conf / ui-config.json
+          readOnly: true
+  volumes:
+    - name: conf
+      configMap:
+        name: app-conf
+        defaultMode: 0644
+        # 可选:只暴露部分键,并重命名
+        # items:
+        #   - key: app.properties
+        #     path: app.properties
+---
+# subPath 对照组:挂单个文件 → 不热更新
+apiVersion: v1
+kind: Pod
+metadata:
+  name: subpath-demo
+  namespace: cfg-lab
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "cat /etc/app/app.properties; sleep 3600"]
+      volumeMounts:
+        - name: conf
+          mountPath: /etc/app/app.properties   # 挂"文件"而非目录
+          subPath: app.properties              # ← subPath 牺牲热更新
+  volumes:
+    - name: conf
+      configMap: { name: app-conf }

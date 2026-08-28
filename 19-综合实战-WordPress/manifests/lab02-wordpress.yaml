@@ -1,0 +1,50 @@
+# 第 2 层:WordPress 应用(Deployment + Service)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: wordpress
+  labels:
+    app: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: wordpress }
+  template:
+    metadata:
+      labels: { app: wordpress }
+    spec:
+      containers:
+        - name: wordpress
+          image: wordpress:php8.2-apache
+          ports: [{ containerPort: 80, name: http }]
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: mysql.wordpress.svc.cluster.local   # 跨对象稳定寻址(第 08 章)
+            - name: WORDPRESS_DB_USER
+              value: root
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: mysql-cred, key: password } }
+            - name: WORDPRESS_DB_NAME
+              value: wordpress
+          readinessProbe:
+            httpGet: { path: /wp-admin/install.php, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 300m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  namespace: wordpress
+spec:
+  type: ClusterIP
+  selector: { app: wordpress }
+  ports: [{ port: 80, targetPort: http }]

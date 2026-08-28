@@ -1,0 +1,28 @@
+# 实验 4:只允许 app=frontend 的 Pod 访问 backend 的 8080
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+  namespace: net-lab
+spec:
+  podSelector:
+    matchLabels: { app: backend }      # 策略作用目标
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:                 # 来源必须带此标签(client 没有所以仍被拒)
+            matchLabels: { app: frontend }
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# 进阶模板:允许同命名空间所有 Pod 互访 + 拒绝跨 ns(未启用,供参考)
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata: { name: allow-same-ns, namespace: net-lab }
+# spec:
+#   podSelector: {}
+#   policyTypes: ["Ingress"]
+#   ingress:
+#     - from:
+#         - podSelector: {}

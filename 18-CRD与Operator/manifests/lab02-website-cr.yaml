@@ -1,0 +1,21 @@
+# 实验 2:创建 Website CR(注意:没有控制器,它只是数据)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crd-lab
+---
+apiVersion: apps.example.com/v1
+kind: Website
+metadata:
+  name: my-site
+  namespace: crd-lab
+spec:
+  image: nginx:1.27       # 必填(schema required)
+  replicas: 2
+  port: 80
+---
+# schema 校验演示:replicas 超过 maximum=20 → apiserver 直接报错
+# apiVersion: apps.example.com/v1
+# kind: Website
+# metadata: { name: too-big, namespace: crd-lab }
+# spec: { image: nginx:1.27, replicas: 99 }

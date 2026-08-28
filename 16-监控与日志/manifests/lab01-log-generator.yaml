@@ -1,0 +1,37 @@
+# 实验 3:日志/指标发生器(有节奏地打 INFO/WARN/ERROR)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mon-lab
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-app
+  namespace: mon-lab
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: log-app } }
+  template:
+    metadata: { labels: { app: log-app } }
+    spec:
+      containers:
+        - name: logger
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              i=0
+              while true; do
+                i=$((i+1))
+                case $((i % 10)) in
+                  0) echo "$(date) ERROR something broke, seq=$i";;
+                  5) echo "$(date) WARN  slow response, seq=$i";;
+                  *) echo "$(date) INFO  request served, seq=$i";;
+                esac
+                sleep 2
+              done
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 50m, memory: 32Mi }

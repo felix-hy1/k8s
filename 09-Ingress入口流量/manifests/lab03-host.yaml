@@ -1,0 +1,23 @@
+# 实验 2:不同域名路由到不同应用(虚拟主机)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: host-routing
+  namespace: ing-lab
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: a.demo.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: app1, port: { number: 80 } }
+    - host: b.demo.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: app2, port: { number: 80 } }

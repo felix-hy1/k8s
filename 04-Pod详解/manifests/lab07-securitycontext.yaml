@@ -1,0 +1,25 @@
+# 实验 7:安全上下文(容器级)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secure-pod
+  namespace: pod-lab
+spec:
+  securityContext:            # Pod 级:对全部容器生效
+    runAsUser: 1000           # 以非 root 运行
+    runAsGroup: 3000
+    fsGroup: 2000             # 挂载卷的文件属组(可写 k8s 挂载的目录)
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "id; sleep 3600"]
+      securityContext:        # 容器级覆盖
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]       # 丢弃全部 Linux capabilities(最小权限)
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp     # 只读根文件系统时,可写目录用 emptyDir 兜底
+  volumes:
+    - name: tmp
+      emptyDir: {}

@@ -1,0 +1,33 @@
+# 实验 2:一次性 Job(跑完即 Completed)
+# pi 任务:计算 2000 位圆周率 —— K8s 官方经典示例
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi
+  namespace: ds-lab
+spec:
+  template:
+    metadata:
+      labels: { job: pi }
+    spec:
+      restartPolicy: Never          # Job 必须是 Never 或 OnFailure
+      containers:
+        - name: pi
+          image: perl:5.40-slim
+          command: ["perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+---
+# 简单收尾任务:10 秒倒计时后退出
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: countdown
+  namespace: ds-lab
+spec:
+  ttlSecondsAfterFinished: 120      # 完成 2 分钟后自动清理 Job 与 Pod
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: countdown
+          image: busybox:1.36
+          command: ["sh", "-c", "for i in 10 9 8 7 6 5 4 3 2 1; do echo $i; sleep 1; done; echo DONE"]

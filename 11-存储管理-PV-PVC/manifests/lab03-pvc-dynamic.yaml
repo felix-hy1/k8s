@@ -1,0 +1,36 @@
+# 实验 3:动态供给 —— 只写 PVC,StorageClass(kind 自带 standard)自动造 PV
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-claim
+  namespace: stor-lab
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard        # kind 默认 SC(local-path-provisioner)
+  resources:
+    requests:
+      storage: 1Gi
+---
+# 写入数据的 Pod(可反复删除重建,数据不丢)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: data-writer
+  namespace: stor-lab
+spec:
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: data-claim
+  containers:
+    - name: app
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          echo "written at $(date)" >> /data/history.log
+          echo '--- history.log ---'; cat /data/history.log
+          sleep 3600
+      volumeMounts:
+        - { name: data, mountPath: /data }

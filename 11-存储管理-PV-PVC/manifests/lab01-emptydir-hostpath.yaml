@@ -1,0 +1,32 @@
+# 实验 1:emptyDir(Pod 内共享)与 hostPath(节点目录)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stor-lab
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vol-demo
+  namespace: stor-lab
+spec:
+  volumes:
+    - name: cache
+      emptyDir: {}                  # Pod 生命周期 = emptyDir 生命周期
+      # sizeLimit: 256Mi            # v1.30+ 可限 emptyDir 大小(需准入特性支持)
+    - name: node-data
+      hostPath:
+        path: /tmp/k8s-hostpath     # 真实落在节点(kind 容器)文件系统
+        type: DirectoryOrCreate
+  containers:
+    - name: writer                  # 写 emptyDir + hostPath
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'from writer' > /cache/msg.txt; echo 'on node disk' > /node/hello.txt; sleep 3600"]
+      volumeMounts:
+        - { name: cache, mountPath: /cache }
+        - { name: node-data, mountPath: /node }
+    - name: reader                  # 同 Pod 另一个容器读 emptyDir
+      image: busybox:1.36
+      command: ["sh", "-c", "while true; do cat /cache/msg.txt 2>/dev/null || echo 'no file yet'; sleep 5; done"]
+      volumeMounts:
+        - { name: cache, mountPath: /cache }

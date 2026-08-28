@@ -1,0 +1,24 @@
+# 实验 3:rollout 暂停/恢复/回滚/重启 的练习对象
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: deploy-lab
+  annotations:
+    kubernetes.io/change-cause: "初始版本 nginx:1.27"
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: app }
+  template:
+    metadata:
+      labels: { app: app }
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 100m, memory: 128Mi }

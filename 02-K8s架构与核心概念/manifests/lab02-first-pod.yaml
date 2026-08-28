@@ -1,0 +1,16 @@
+# 实验 2:第一个 Pod(最小可用清单)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+  namespace: dev            # 不写则落在 default
+  labels:
+    app: web                # 标签:后续 Service/调度都靠它
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27     # 镜像:仓库/名称:标签
+      ports:
+        - containerPort: 80 # 声明性信息,不写也能访问
+      resources:
+        requests: { cpu: 50m, memory: 64Mi }

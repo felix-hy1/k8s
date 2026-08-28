@@ -1,0 +1,17 @@
+{{ .Chart.Name }} 已部署!
+
+Release: {{ .Release.Name }}
+命名空间: {{ .Release.Namespace }}
+
+1. 验证 Pod:
+   kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2. 集群内访问:
+   kubectl run curl --rm -it --image=curlimages/curl --restart=Never -- \
+     curl http://{{ include "mychart.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.service.port }}
+
+{{- if .Values.ingress.enabled }}
+3. Ingress 已启用:
+   hosts 文件添加: 127.0.0.1 {{ .Values.ingress.host }}
+   浏览器访问: http://{{ .Values.ingress.host }}/
+{{- end }}

@@ -1,0 +1,19 @@
+# 实验 5:生命周期钩子 postStart / preStop
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hook-demo
+  namespace: pod-lab
+spec:
+  terminationGracePeriodSeconds: 30   # 优雅退出总预算(含 preStop 时间)
+  containers:
+    - name: busybox
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'main started'; sleep 3600"]
+      lifecycle:
+        postStart:                    # 容器创建后立即执行(不保证在 ENTRYPOINT 前)
+          exec:
+            command: ["sh", "-c", "echo 'postStart hook run' >> /tmp/hook.log"]
+        preStop:                      # 收到终止信号前执行,用于优雅下线(摘流、反注册)
+          exec:
+            command: ["sh", "-c", "echo 'preStop hook run, draining...' >> /tmp/hook.log; sleep 5"]

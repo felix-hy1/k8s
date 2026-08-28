@@ -1,0 +1,11 @@
+# NetworkPolicy 实验专用集群:禁用默认 kindnet,改装 Calico
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: netpol-lab
+networking:
+  disableDefaultCNI: true     # 关键:kindnet 不支持 NetworkPolicy
+  kubeProxyMode: iptables     # Calico 兼容 iptables 模式
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker

@@ -1,0 +1,11 @@
+# 进阶:3 控制面高可用集群(可选,宿主机内存 >= 12GB)
+# kind 自带 kubeadm 的 etcd 高可用堆叠部署,无需额外负载均衡器
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ha-lab
+nodes:
+  - role: control-plane
+  - role: control-plane
+  - role: control-plane
+  - role: worker
+  - role: worker

@@ -1,0 +1,6 @@
+{
+  "theme": "dark",
+  "language": "zh-CN",
+  "pagination": { "pageSize": 20, "showQuickJumper": true },
+  "features": ["search", "export", "dark-mode"]
+}

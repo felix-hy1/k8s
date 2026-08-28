@@ -1,0 +1,8 @@
+apiVersion: v2
+name: my-chart
+description: 学习用完整示例 Chart:Deployment + Service + ConfigMap + Ingress + HPA
+type: application
+version: 0.1.0          # Chart 版本(helm 管理用)
+appVersion: "1.27"      # 应用版本(仅元信息)
+maintainers:
+  - name: k8s-learner

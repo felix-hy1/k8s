@@ -1,0 +1,30 @@
+# 实验 5:MetalLB 地址池 + LoadBalancer Service
+# 前置:MetalLB 已安装;addresses 需按 README 步骤 2 的输出修改
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: kind-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 172.18.255.200-172.18.255.250   # ← 改成 `docker network inspect kind` 子网的 .255.200-.250
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2
+  namespace: metallb-system
+spec: {}                              # 对所有地址池、所有节点做二层通告
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-lb
+  namespace: svc-lab
+spec:
+  type: LoadBalancer                 # MetallB 会从池里分一个 EXTERNAL-IP
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80

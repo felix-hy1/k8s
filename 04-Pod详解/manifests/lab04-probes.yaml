@@ -1,0 +1,53 @@
+# 实验 4:三种探针 + 故障演练
+# healthy:readiness + liveness 都正确指向 80 端口
+# broken:liveness 故意指向 81 端口 → 反复失败 → 容器被杀重启 → CrashLoopBackOff
+apiVersion: v1
+kind: Pod
+metadata:
+  name: healthy-pod
+  namespace: pod-lab
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27
+      readinessProbe:              # 就绪:不通过则从 Service 端点摘除
+        httpGet: { path: /, port: 80 }
+        initialDelaySeconds: 3
+        periodSeconds: 5
+      livenessProbe:               # 存活:不通过则重启容器
+        httpGet: { path: /, port: 80 }
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        failureThreshold: 3        # 连续失败 3 次(约 30s)才判死
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: broken-pod
+  namespace: pod-lab
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27
+      livenessProbe:
+        httpGet: { path: /, port: 81 }   # 错误端口,注定失败
+        periodSeconds: 5
+        failureThreshold: 2
+---
+# startupProbe 演示:慢启动应用先等 startup,成功前不做 liveness/readiness
+apiVersion: v1
+kind: Pod
+metadata:
+  name: slow-start-pod
+  namespace: pod-lab
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27
+      startupProbe:
+        httpGet: { path: /, port: 80 }
+        periodSeconds: 3
+        failureThreshold: 30       # 最多容忍 90s 启动时间
+      livenessProbe:
+        httpGet: { path: /, port: 80 }
+        periodSeconds: 10

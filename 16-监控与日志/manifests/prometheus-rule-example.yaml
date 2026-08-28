@@ -1,0 +1,21 @@
+# 实验 4:自定义告警规则(PrometheusRule CRD)
+# 效果:任意 Pod 15 分钟内重启 ≥3 次即触发告警
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pod-restart-alert
+  namespace: monitoring
+  labels:
+    release: kps            # 必须带此标签才会被 Prometheus 实例选中
+spec:
+  groups:
+    - name: pod.rules
+      rules:
+        - alert: PodRestartTooOften
+          expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+          for: 1m           # 持续 1 分钟才 Firing
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} 频繁重启"
+            description: "15 分钟内重启 {{ $value | printf \"%.0f\" }} 次,请检查 CrashLoopBackOff 原因"

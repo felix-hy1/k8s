@@ -1,0 +1,21 @@
+# 实验 3:Headless 与 ExternalName
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-headless
+  namespace: svc-lab
+spec:
+  clusterIP: None                 # ← Headless:DNS 直接解析到每个 Pod IP
+  selector:
+    app: web
+  ports:
+    - port: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-external
+  namespace: svc-lab
+spec:
+  type: ExternalName              # 无 VIP、无代理,仅返回 CNAME
+  externalName: www.baidu.com     # 集群内用 my-external.svc-lab 访问百度

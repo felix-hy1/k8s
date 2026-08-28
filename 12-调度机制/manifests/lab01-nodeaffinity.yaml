@@ -1,0 +1,68 @@
+# 实验 1:nodeSelector 与节点亲和性
+# 前置:kubectl label node k8s-learning-worker disktype=ssd
+#       kubectl label node k8s-learning-worker2 disktype=hdd
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sched-lab
+---
+# 方式一:nodeSelector(简单硬匹配)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ns-pod
+  namespace: sched-lab
+spec:
+  nodeSelector:
+    disktype: ssd
+  containers:
+    - { name: app, image: nginx:1.27 }
+---
+# 方式二:节点亲和性(支持 In/NotIn/Exists/Gt/Lt 与软硬两级)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: affinity-pod
+  namespace: sched-lab
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:   # 硬:必须满足
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: disktype
+                operator: In
+                values: [ssd, nvme]
+      preferredDuringSchedulingIgnoredDuringExecution:  # 软:加权偏好
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: disktype
+                operator: In
+                values: [nvme]
+        - weight: 20
+          preference:
+            matchExpressions:
+              - key: disktype
+                operator: In
+                values: [ssd]
+  containers:
+    - { name: app, image: nginx:1.27 }
+---
+# 没有节点满足 → Pending(排错观察对象)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: no-fit-pod
+  namespace: sched-lab
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: disktype
+                operator: In
+                values: [nvme]
+  containers:
+    - { name: app, image: nginx:1.27 }

@@ -1,0 +1,37 @@
+# 实验 6:requests/limits 与 QoS 三等级对照
+# 查看: kubectl get pods -n pod-lab -o custom-columns='NAME:.metadata.name,QOS:.status.qosClass'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: guaranteed-pod        # requests == limits(cpu 和 mem 都要相等)
+  namespace: pod-lab
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27
+      resources:
+        requests: { cpu: 100m, memory: 128Mi }
+        limits: { cpu: 100m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: burstable-pod         # 有 requests,limits 更大 → 可突发占用
+  namespace: pod-lab
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27
+      resources:
+        requests: { cpu: 50m, memory: 64Mi }
+        limits: { cpu: 200m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: besteffort-pod        # 完全不设 → 最先被驱逐
+  namespace: pod-lab
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27

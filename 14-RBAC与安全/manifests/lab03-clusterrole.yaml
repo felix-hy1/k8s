@@ -1,0 +1,36 @@
+# 实验 3:ClusterRole + ClusterRoleBinding —— 集群级授权
+# 场景:给"监控采集器"一个只能看节点信息的身份
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-viewer
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/metrics"]   # Node 是集群级资源,Role 里写无效
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ServiceAccount
+metadata:
+  name: node-viewer
+  namespace: rbac-lab
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-viewer-binding
+subjects:
+  - kind: ServiceAccount
+    name: node-viewer
+    namespace: rbac-lab
+roleRef:
+  kind: ClusterRole
+  name: node-viewer
+  apiGroup: rbac.authorization.k8s.io
+---
+# 对照:RoleBinding 引用 ClusterRole(把集群级定义裁剪到单 ns 用)
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: RoleBinding
+# metadata: { name: view-in-ns, namespace: rbac-lab }
+# subjects: [{ kind: ServiceAccount, name: pod-reader, namespace: rbac-lab }]
+# roleRef: { kind: ClusterRole, name: view, apiGroup: rbac.authorization.k8s.io }

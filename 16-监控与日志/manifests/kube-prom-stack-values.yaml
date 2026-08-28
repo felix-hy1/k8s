@@ -1,0 +1,38 @@
+# kube-prometheus-stack 学习环境定制 values
+# 用法: helm install kps prometheus-community/kube-prometheus-stack -f 本文件
+fullnameOverride: kps
+
+prometheus:
+  prometheusSpec:
+    retention: 2d                 # 学习环境只留 2 天
+    resources:
+      requests: { cpu: 200m, memory: 768Mi }
+      limits: { memory: 1Gi }
+    # 抓取带 monitor: true 标签的 ServiceMonitor
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+
+grafana:
+  adminPassword: prom-operator    # 生产必改
+  defaultDashboardsEnabled: true
+  service:
+    type: ClusterIP               # 用 port-forward 访问,不开洞
+  resources:
+    limits: { memory: 512Mi }
+
+alertmanager:
+  alertmanagerSpec:
+    retention: 120h
+  # 学习环境禁用邮件等通知渠道,只在 Web UI 看告警
+  config:
+    route:
+      group_by: ["alertname"]
+      receiver: "null"
+    receivers:
+      - name: "null"
+
+kubeStateMetrics:
+  enabled: true
+nodeExporter:
+  enabled: true

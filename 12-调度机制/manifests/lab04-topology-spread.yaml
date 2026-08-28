@@ -1,0 +1,24 @@
+# 实验 4:拓扑打散(topologySpreadConstraints)
+# maxSkew=1:任意两节点上本应用副本数差距不超过 1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: balanced
+  namespace: sched-lab
+spec:
+  replicas: 4
+  selector: { matchLabels: { app: balanced } }
+  template:
+    metadata: { labels: { app: balanced } }
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname     # 拓扑域:节点(生产可用 topology.kubernetes.io/zone)
+          whenUnsatisfiable: DoNotSchedule        # 不满足就 Pending;ScheduleAnyway = 软约束
+          labelSelector:
+            matchLabels: { app: balanced }
+      containers:
+        - name: web
+          image: nginx:1.27
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }

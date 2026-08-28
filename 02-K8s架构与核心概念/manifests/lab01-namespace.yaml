@@ -1,0 +1,21 @@
+# 实验 1:Namespace(集群内的逻辑分区)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels:
+    env: dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+  labels:
+    env: test
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+  labels:
+    env: prod

@@ -1,0 +1,22 @@
+# 实验 4:CronJob —— 每分钟心跳
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: heartbeat
+  namespace: ds-lab
+spec:
+  schedule: "*/1 * * * *"        # 每分钟(集群 UTC 时区)
+  # timeZone: "Asia/Shanghai"    # v1.27+ 可直接指定时区
+  concurrencyPolicy: Forbid      # 上一轮没跑完则跳过本轮
+  successfulJobsHistoryLimit: 3  # 保留 3 个成功 Job 便于查日志
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 300
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: heartbeat
+              image: busybox:1.36
+              command: ["sh", "-c", "date; echo 'heartbeat tick'"]

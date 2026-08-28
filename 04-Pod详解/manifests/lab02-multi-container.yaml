@@ -1,0 +1,26 @@
+# 实验 2:多容器 Pod(sidecar 模式)
+# 主容器 nginx 每次被访问写访问日志;边车实时读取共享目录 —— 证明同一 Pod 共享 Volume
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-with-sidecar
+  namespace: pod-lab
+spec:
+  volumes:
+    - name: shared-logs
+      emptyDir: {}                # Pod 级共享临时目录,Pod 删除即消失
+  containers:
+    # 主容器:nginx,把访问日志写到共享目录
+    - name: log-writer
+      image: nginx:1.27
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /var/log/nginx
+    # 边车:每 2 秒读取共享目录中的访问日志并打到 stdout(模拟日志采集)
+    - name: log-reader
+      image: busybox:1.36
+      command: ["sh", "-c", "while true; do echo '--- access.log ---'; cat /data/nginx/access.log 2>/dev/null | tail -3; sleep 2; done"]
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /data/nginx
+          readOnly: true

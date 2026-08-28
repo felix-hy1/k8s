@@ -1,0 +1,126 @@
+# 实验 2:StatefulSet 部署 MySQL 8.0(学习用单节点)
+# 串联:Namespace + Secret(口令) + ConfigMap(SQL) + Headless Service + StatefulSet + PVC 模板 + 客户端 Pod
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mysql-ns
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-root-password
+  namespace: mysql-ns
+type: Opaque
+stringData:                  # stringData 明文书写,apiserver 自动转 base64 存储
+  password: "Root@123456"
+---
+# 初始化 SQL(内容与 sql/01-init.sql 一致,保持双处同步)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb
+  namespace: mysql-ns
+data:
+  01-init.sql: |
+    -- 仅在数据目录为空(首次启动)时自动执行
+    CREATE DATABASE IF NOT EXISTS k8s_learning
+      DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    USE k8s_learning;
+
+    CREATE TABLE IF NOT EXISTS students (
+        id         INT AUTO_INCREMENT PRIMARY KEY,
+        name       VARCHAR(50) NOT NULL,
+        major      VARCHAR(50) NOT NULL,
+        score      DECIMAL(5,2) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    INSERT INTO students (name, major, score) VALUES
+      ('张三', '计算机科学', 88.50),
+      ('李四', '软件工程',   92.00),
+      ('王五', '网络工程',   79.50);
+
+    -- 业务专用账号(生产不要用 root 连库)
+    CREATE USER IF NOT EXISTS 'dev'@'%' IDENTIFIED BY 'Dev@123456';
+    GRANT SELECT, INSERT, UPDATE, DELETE ON k8s_learning.* TO 'dev'@'%';
+    FLUSH PRIVILEGES;
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: mysql-ns
+spec:
+  clusterIP: None            # Headless:DNS 可解析 mysql-0.mysql.mysql-ns.svc.cluster.local
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: mysql-ns
+spec:
+  serviceName: mysql
+  replicas: 1
+  selector:
+    matchLabels: { app: mysql }
+  template:
+    metadata:
+      labels: { app: mysql }
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+              name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root-password
+                  key: password
+          volumeMounts:
+            - name: data                    # 挂 PVC 模板卷(数据目录)
+              mountPath: /var/lib/mysql
+            - name: initdb                  # 挂初始化 SQL
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          readinessProbe:                   # Ready 才可被 DNS/Service 暴露
+            exec:
+              command: ["sh", "-c", "mysqladmin ping -uroot -p\"$MYSQL_ROOT_PASSWORD\" --silent"]
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 100m, memory: 512Mi }
+            limits: { cpu: 500m, memory: 1Gi }
+      volumes:
+        - name: initdb
+          configMap:
+            name: mysql-initdb
+  volumeClaimTemplates:                     # 生成 data-mysql-0,随 Pod 生命周期绑定
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+---
+# 一次性 MySQL 客户端,用于连接测试
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysql-client
+  namespace: mysql-ns
+spec:
+  restartPolicy: Never
+  containers:
+    - name: mysql
+      image: mysql:8.0
+      command: ["sh", "-c", "sleep 8h"]

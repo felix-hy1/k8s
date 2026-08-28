@@ -1,0 +1,23 @@
+# 实验 4:无选择器 Service + 手动 Endpoints(把外部服务"接入"集群 DNS)
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-db
+  namespace: svc-lab
+spec:
+  # 注意:没有 selector → 系统不会自动生成 Endpoints
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+# 名字必须与 Service 完全一致才会被关联
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: external-db
+  namespace: svc-lab
+subsets:
+  - addresses:
+      - ip: 172.18.0.1             # ← 换成你的真实外部地址(docker 网关演示用)
+    ports:
+      - port: 3306
