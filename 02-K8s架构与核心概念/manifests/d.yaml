@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gen-web
+  name: gen-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gen-web
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: gen-web
+    spec:
+      containers:
+      - image: nginx:1.27
+        name: nginx
+        resources: {}
+status: {}

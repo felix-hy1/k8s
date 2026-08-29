@@ -56,7 +56,8 @@
 |------|------|
 | `k port-forward svc/web 8080:80` | 本地端口映射 |
 | `k run t --rm -it --image=busybox --restart=Never -- sh` | 一次性调试 Pod |
-| `k cp ns/pod:/path ./local` | 拷文件 |
+| `k cp ns/pod:/path ./local` | 拷文件(Pod→本地) |
+| `k cp ./local ns/pod:/path` | 拷文件(本地→Pod) |
 | `k auth can-i delete pods --as=xx` | 权限自检 |
 | `k get --raw='/readyz?verbose'` | 组件健康 |
 

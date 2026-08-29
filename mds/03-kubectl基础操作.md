@@ -109,7 +109,9 @@ kubectl delete pod web -n dev --grace-period=0 --force   # 强杀(慎用)
 
 # ---- 调试 ----
 kubectl port-forward pod/web 8080:80 -n dev   # 本地访问 Pod
-kubectl cp dev/web:/etc/hostname ./host.txt   # 拷贝文件
+# cp 双向拷贝(与 scp 同向):
+kubectl cp dev/web:/etc/hostname ./host.txt   # Pod → 本地
+kubectl cp ./host.txt dev/web:/tmp/           # 本地 → Pod(目标要写到容器内路径)
 kubectl explain pod.spec.containers.livenessProbe   # 层层查字段文档
 ```
 
