@@ -18,7 +18,76 @@ kubectl [命令] [资源类型] [名字] [标志]
 
 常用命令动词:`get / describe / create / apply / edit / delete / logs / exec / scale / rollout / cp / port-forward / top / explain / api-resources`
 
-## 3.2 命令速查(核心)
+## 3.2 get 命令详解(使用频率最高,务必熟练)
+
+通用骨架:
+
+```
+kubectl get <资源类型> [资源名] [参数]
+```
+
+- **不写名字 = 列出全部**;写名字 = 只看这一个,如 `kubectl get pod web`;一次看多个也行:`kubectl get pod web api -n dev`
+- 特殊资源名 `all`:常用资源一键全看,`kubectl get all -n dev`(Pod/Service/Deployment/ReplicaSet 等)
+
+### 高频资源缩写
+
+| 全称 | 缩写 | 全称 | 缩写 |
+|------|------|------|------|
+| pods | po | deployments | deploy |
+| nodes | no | replicasets | rs |
+| services | svc | statefulsets | sts |
+| namespaces | ns | daemonsets | ds |
+| configmaps | cm | jobs | job |
+| secrets | secret | cronjobs | cj |
+| ingresses | ing | serviceaccounts | sa |
+| persistentvolumes | pv | persistentvolumeclaims | pvc |
+
+> 完整列表随时可查:`kubectl api-resources`(SHORTNAMES 列就是缩写)
+
+### 常用参数
+
+| 参数 | 全称 | 作用 | 例子 |
+|------|------|------|------|
+| `-n xx` | `--namespace` | 指定命名空间 | `kubectl get pods -n kube-system` |
+| `-A` | `--all-namespaces` | 所有命名空间 | `kubectl get pods -A` |
+| `-o wide` | `--output` | 表格加宽(多出 IP/节点等列) | `kubectl get pods -o wide` |
+| `-o yaml` / `-o json` | | 完整对象定义(spec+status) | `kubectl get pod web -o yaml` |
+| `-o jsonpath=` | | 提取具体字段 | `kubectl get pod web -o jsonpath='{.status.podIP}'` |
+| `-o custom-columns=` | | 自定义表格列 | `kubectl get pods -o custom-columns='NAME:.metadata.name,NODE:.spec.nodeName'` |
+| `-l` | `--selector` | 按**标签**筛选 | `kubectl get pods -l app=web` |
+| `--show-labels` | | 显示标签列 | `kubectl get pods --show-labels` |
+| `--field-selector` | | 按**字段**过滤 | `kubectl get pods --field-selector=status.phase=Running` |
+| `-w` | `--watch` | 持续监听变化(观察滚动更新必用) | `kubectl get pods -w` |
+| `--sort-by` | | 按字段排序 | `kubectl get pods --sort-by=.metadata.creationTimestamp` |
+| `--no-headers` | | 去掉表头(写脚本用) | `kubectl get pods --no-headers` |
+
+> `-l` 与 `--field-selector` 的区别:标签是你自己打上去的元数据,可按任意维度筛;字段是对象自带属性,只支持 name/phase 等少数几个。
+
+### 输出列含义
+
+`kubectl get nodes`:
+
+| 列 | 含义 | 关注点 |
+|----|------|--------|
+| STATUS | Ready / NotReady / SchedulingDisabled | 必须 Ready;NotReady = kubelet 挂了 |
+| ROLES | control-plane 或 `<none>` | `<none>` 即工作节点 |
+| INTERNAL-IP | 节点 IP(kind 里是 Docker 容器 IP) | NodePort 实验要用(第 08 章) |
+| VERSION / OS-IMAGE / CONTAINER-RUNTIME | 版本信息 | 排错偶尔用 |
+
+`kubectl get pods`:
+
+| 列 | 含义 |
+|----|------|
+| READY | 就绪容器数/总容器数,如 `1/1`(多容器 Pod 会出现 `1/2`) |
+| STATUS | Running 正常 / Completed 跑完退出 / Pending 没调度上 / CrashLoopBackOff 反复崩溃 / ImagePullBackOff 拉不到镜像 |
+| RESTARTS | 重启次数,不为 0 且持续增加 = 有问题 |
+| AGE | 存活时长 |
+
+### get 的黄金搭档
+
+`get` 看"状态**是什么**",`describe` 看"**为什么**变成这个状态"——遇到 Pending、CrashLoopBackOff 时,先 `kubectl describe pod xx` 看最下面的 Events(具体见 3.3)。
+
+## 3.3 命令速查(核心)
 
 ```bash
 # ---- 查看 ----
@@ -44,7 +113,7 @@ kubectl cp dev/web:/etc/hostname ./host.txt   # 拷贝文件
 kubectl explain pod.spec.containers.livenessProbe   # 层层查字段文档
 ```
 
-## 3.3 输出格式与字段提取
+## 3.4 输出格式与字段提取
 
 ```bash
 kubectl get pods -o yaml                                  # 完整对象(含 status)
@@ -55,7 +124,7 @@ kubectl get events -n dev --sort-by=.lastTimestamp       # 事件按时间排序
 kubectl config get-contexts && kubectl config use-context kind-k8s-learning
 ```
 
-## 3.4 命令式 → 声明式工作流(生成 YAML 三板斧)
+## 3.5 命令式 → 声明式工作流(生成 YAML 三板斧)
 
 ```bash
 # 1) 生成 Deployment
@@ -67,7 +136,7 @@ kubectl create configmap / secret / job / cronjob / namespace --dry-run=client -
 # 生成的文件再人工完善 → 纳入 git → kubectl apply -f
 ```
 
-## 3.5 --dry-run 与 diff(安全变更)
+## 3.6 --dry-run 与 diff(安全变更)
 
 ```bash
 kubectl apply -f d.yaml --dry-run=server    # 服务端校验,不落库
