@@ -58,6 +58,37 @@ kubectl <动词> <资源类型> [名字] [标志]
 
 ## 三、命令式与声明式(kubectl 的两种灵魂)
 
+### 3.0 声明式的实物:练习对象 Deployment(lab01-practice.yaml 注解)
+```yaml
+apiVersion: apps/v1              # apps 组:Deployment/ReplicaSet/StatefulSet 所在
+kind: Deployment
+metadata:
+  name: shop
+  namespace: kubectl-lab
+  labels:
+    app: shop                    # Deployment 对象自身的标签(非 Pod 的)
+spec:
+  replicas: 3                    # 期望副本数:少补多删
+  selector:
+    matchLabels:
+      app: shop                  # 认领自己的 Pod(必须与 template 标签一致)
+  template:                      # 内嵌 Pod 模板 = 新 Pod 的"模具"
+    metadata:
+      labels:
+        app: shop                # 新 Pod 出厂标签,与 selector 对齐
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27      # 改这行 = 触发滚动更新
+          ports:
+            - containerPort: 80
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 100m, memory: 128Mi }   # requests≠limits → Burstable
+```
+- spec 三要素记忆:**replicas(要几个)+ selector(哪些是我的)+ template(长什么样)**
+- 改 replicas → 扩缩容;改 template → 滚动更新;selector 基本不动
+
 ### 3.1 对比
 | | 命令式(create/set/scale/rollout/edit) | 声明式(apply) |
 |---|----------------------------------------|----------------|
@@ -70,6 +101,16 @@ kubectl <动词> <资源类型> [名字] [标志]
 ### 3.2 apply 的三方合并(核心原理)
 **账本机制**:每次 `kubectl apply`,kubectl 把**整份文件内容**存进注解:
 `kubectl.kubernetes.io/last-applied-configuration` —— 它是"上一次你声明过什么"的存证。
+
+```yaml
+# apply 后对象上自动出现的注解(账本):
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{...},
+       "spec":{"replicas":3,"selector":{...},"template":{...}}}
+# 查看: kubectl get deployment shop -n kubectl-lab -o yaml | grep -A2 last-applied
+```
 
 下次 apply 同一文件时执行**三方合并**:
 
@@ -174,6 +215,32 @@ kubectl <动词> <资源类型> [名字] [标志]
 |------|--------------|------|
 | `--dry-run=client` | 本地渲染,不发请求 | 生成 YAML 模板 |
 | `--dry-run=server` | 完整走 apiserver:认证/授权/准入/校验,但**不落库** | 上线前真实验证 |
+
+```bash
+# 命令式 → 声明式的标准转换(dry-run + -o yaml 即"生成模板"):
+kubectl create deployment gen-web --image=nginx:1.27 --dry-run=client -o yaml
+# 产物:
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   creationTimestamp: null      # ← 占位字段,apply 前应删掉
+#   labels:
+#     app: gen-web
+#   name: gen-web
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels: { app: gen-web }
+#   template:
+#     metadata:
+#       labels: { app: gen-web }
+#     spec:
+#       containers:
+#       - image: nginx:1.27
+#         name: nginx
+#         resources: {}
+```
+- 生成物再人工完善(删 creationTimestamp 占位、补 resources)→ 存文件 → apply
 
 ### 7.2 diff
 - `kubectl diff -f xx.yaml`:以三方合并逻辑预演"apply 会改什么",退出码非 0 表示有差异 → 可做 CI 门禁

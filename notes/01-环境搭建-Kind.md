@@ -51,6 +51,30 @@
 
 ## 三、配置文件逐字段原理(kind-cluster.yaml)
 
+### 3.0 配置全文(带注解,对应 manifests/kind-cluster.yaml)
+```yaml
+kind: Cluster                       # 配置文件类型:集群
+apiVersion: kind.x-k8s.io/v1alpha4  # kind 私有 schema,不是 K8s 资源
+name: k8s-learning                  # 集群名 → 派生 context/节点容器名
+nodes:
+  - role: control-plane             # 控制面节点:承载 apiserver/etcd/scheduler/controller-manager
+    kubeadmConfigPatches:           # 给 kubeadm 注入配置(底层用 kubeadm 装集群)
+      - |                           # YAML 字面块标量:整段文本原样传入
+        kind: InitConfiguration     # ← 这里的 kind 属于 kubeadm,与外层 kind 工具无关
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"   # 打标签 → ingress-nginx 靠它调度到控制面
+    extraPortMappings:              # 本质 = docker run -p:宿主机端口 → 节点容器端口
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+  - role: worker                    # 工作节点:只运行业务 Pod
+  - role: worker
+```
+
 ### 3.1 文件性质
 - apiVersion 是 `kind.x-k8s.io/v1alpha4` —— kind 私有 schema,**不是** K8s 资源;不能被 kubectl apply
 - 语义:"集群本身长什么样"(拓扑/网络/端口),与"集群里跑什么"(资源清单)是两个世界
@@ -126,7 +150,18 @@ Windows 浏览器 http://demo.local
 | 外置式(external) | etcd 独立集群,apiserver 全部外连 | 故障域分离、更稳;成本高、运维复杂 |
 
 ### 4.3 kind 的 HA 实现
-- 3 个 control-plane 节点容器即堆叠式 HA
+- 3 个 control-plane 节点容器即堆叠式 HA,配置全文:
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ha-lab
+nodes:
+  - role: control-plane      # 3 个控制面:apiserver + etcd 各一份(堆叠式)
+  - role: control-plane
+  - role: control-plane
+  - role: worker             # 2 个工作节点
+  - role: worker
+```
 - kind 自动创建一个 **nginx 负载均衡容器**:`<集群名>-external-load-balancer`,监听 apiServerPort,后端挂所有控制面的 6443 → kubeconfig/kubelet/后续 join 都指向 LB,免去手动搭负载均衡
 - 验证方式(知识层面):HA 集群 `docker ps` 能看到 LB 容器;停掉任一控制面,集群仍可读写(apiserver 层)且 etcd 仍有 quorum
 

@@ -1,0 +1,85 @@
+// Kubernetes YAML 补全配置：按文件夹/文件名前缀映射官方 JSON Schema
+// 来源：https://github.com/yannh/kubernetes-json-schema (跟随 master)
+// 对任意文件想强制指定类型，可在文件第一行加：
+//   # yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/pod-v1.json
+{
+  "lsp": {
+    "yaml-language-server": {
+      "settings": {
+        "yaml": {
+          "kubernetesCRDStore": { "enable": true },
+          "validate": true,
+          "hover": true,
+          "completion": true,
+          "schemas": {
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.34.1-standalone-strict/all.json": ["**/practice/**/*.yaml"],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/pod-v1.json": [
+              "**/03-*/**/*.yaml",
+              "**/04-*/**/*.yaml",
+              "**/12-*/**/*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/deployment-apps-v1.json": [
+              "**/05-*/**/*.yaml",
+              "**/19-*/**/*deployment*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/statefulset-apps-v1.json": [
+              "**/06-*/**/*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/cronjob-batch-v1.json": [
+              "**/07-*/**/*cron*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/job-batch-v1.json": [
+              "**/07-*/**/*job*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/daemonset-apps-v1.json": [
+              "**/07-*/**/*daemon*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/service-v1.json": [
+              "**/08-*/**/*.yaml",
+              "**/19-*/**/*service*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/ingress-networking-v1.json": [
+              "**/09-*/**/*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/configmap-v1.json": [
+              "**/10-*/**/*config*.yaml",
+              "**/19-*/**/*config*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/secret-v1.json": [
+              "**/10-*/**/*secret*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/persistentvolumeclaim-v1.json": [
+              "**/11-*/**/*pvc*.yaml",
+              "**/19-*/**/*pvc*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/persistentvolume-v1.json": [
+              "**/11-*/**/*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/networkpolicy-networking-v1.json": [
+              "**/13-*/**/*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/clusterrole-rbac-v1.json": [
+              "**/14-*/**/*clusterrole*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/clusterrolebinding-rbac-v1.json": [
+              "**/14-*/**/*clusterrolebinding*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/rolebinding-rbac-v1.json": [
+              "**/14-*/**/*rolebinding*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/serviceaccount-v1.json": [
+              "**/14-*/**/*account*.yaml",
+              "**/14-*/**/*sa-*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/role-rbac-v1.json": [
+              "**/14-*/**/*.yaml"
+            ],
+            "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/horizontalpodautoscaler-autoscaling-v2.json": [
+              "**/15-*/**/*.yaml"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
