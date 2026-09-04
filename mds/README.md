@@ -53,13 +53,13 @@ bash /mnt/d/k8s/01-环境搭建-Kind/scripts/00-setup-all.sh
 
 | 章 | 文档(mds/) | 资源目录(D:\k8s\) | 核心实验 | 建议学时 | 难度 | 进度 |
 |----|-------------|--------------------|----------|----------|------|------|
-| 01 | `01-环境搭建-Kind.md` | `01-环境搭建-Kind\` | 搭建 1 控制面 + 2 工作节点集群 | 2h | ★ | ☐ |
-| 02 | `02-K8s架构与核心概念.md` | `02-K8s架构与核心概念\` | 观察集群组件、跑第一个 Pod | 3h | ★ | ☐ |
-| 03 | `03-kubectl基础操作.md` | `03-kubectl基础操作\` | 10 个命令小任务、生成 YAML | 4h | ★★ | ☐ |
-| 04 | `04-Pod详解.md` | `04-Pod详解\` | 7 个递进实验(探针/QoS/多容器) | 8h | ★★ | ☐ |
-| 05 | `05-Deployment与ReplicaSet.md` | `05-Deployment与ReplicaSet\` | 发布策略对比、版本回滚 | 6h | ★★ | ☐ |
+| 01 | `01-环境搭建-Kind.md` | `01-环境搭建-Kind\` | 搭建 1 控制面 + 2 工作节点集群 | 2h | ★ | ✅ |
+| 02 | `02-K8s架构与核心概念.md` | `02-K8s架构与核心概念\` | 观察集群组件、跑第一个 Pod | 3h | ★ | ✅ |
+| 03 | `03-kubectl基础操作.md` | `03-kubectl基础操作\` | 10 个命令小任务、生成 YAML | 4h | ★★ | ✅ |
+| 04 | `04-Pod详解.md` | `04-Pod详解\` | 7 个递进实验(探针/QoS/多容器) | 8h | ★★ | ✅ |
+| 05 | `05-Deployment与ReplicaSet.md` | `05-Deployment与ReplicaSet\` | 发布策略对比、版本回滚 | 6h | ★★ | ✅ |
 | 06 | `06-StatefulSet有状态应用.md` | `06-StatefulSet有状态应用\` | 部署 MySQL + SQL 脚本初始化 | 8h | ★★★ | ☐ |
-| 07 | `07-DaemonSet-Job-CronJob.md` | `07-DaemonSet-Job-CronJob\` | 节点代理、并行 Job、定时任务 | 4h | ★★ | ☐ |
+| 07 | `07-DaemonSet-Job-CronJob.md` | `07-DaemonSet-Job-CronJob\` | 节点代理、并行 Job、定时任务 | 4h | ★★ | ✅ |
 | 08 | `08-Service服务发现.md` | `08-Service服务发现\` | 四种 Service + MetalLB | 6h | ★★★ | ☐ |
 | 09 | `09-Ingress入口流量.md` | `09-Ingress入口流量\` | 路径/域名路由 + TLS | 5h | ★★ | ☐ |
 | 10 | `10-ConfigMap与Secret.md` | `10-ConfigMap与Secret\` | 配置外置 + 热更新实验 | 6h | ★★ | ☐ |
