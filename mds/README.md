@@ -61,7 +61,7 @@ bash /mnt/d/k8s/01-环境搭建-Kind/scripts/00-setup-all.sh
 | 06 | `06-StatefulSet有状态应用.md` | `06-StatefulSet有状态应用\` | 部署 MySQL + SQL 脚本初始化 | 8h | ★★★ | ☐ |
 | 07 | `07-DaemonSet-Job-CronJob.md` | `07-DaemonSet-Job-CronJob\` | 节点代理、并行 Job、定时任务 | 4h | ★★ | ✅ |
 | 08 | `08-Service服务发现.md` | `08-Service服务发现\` | 四种 Service + MetalLB | 6h | ★★★ | ☐ |
-| 09 | `09-Ingress入口流量.md` | `09-Ingress入口流量\` | 路径/域名路由 + TLS | 5h | ★★ | ☐ |
+| 09 | `09-Ingress入口流量.md` | `09-Ingress入口流量\` | 路径/域名路由 + TLS | 5h | ★★ | ✅ |
 | 10 | `10-ConfigMap与Secret.md` | `10-ConfigMap与Secret\` | 配置外置 + 热更新实验 | 6h | ★★ | ✅ |
 | 11 | `11-存储管理-PV-PVC.md` | `11-存储管理-PV-PVC\` | 手工 PV + 动态 PVC | 7h | ★★★ | ✅ |
 | 12 | `12-调度机制.md` | `12-调度机制\` | 亲和性/污点/拓扑打散 4 组实验 | 6h | ★★★ | ✅ |
