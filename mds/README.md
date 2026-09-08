@@ -67,7 +67,7 @@ bash /mnt/d/k8s/01-环境搭建-Kind/scripts/00-setup-all.sh
 | 12 | `12-调度机制.md` | `12-调度机制\` | 亲和性/污点/拓扑打散 4 组实验 | 6h | ★★★ | ✅ |
 | 13 | `13-集群网络与NetworkPolicy.md` | `13-集群网络与NetworkPolicy\` | DNS 解析 + Calico 网络策略 | 7h | ★★★ | ✅ |
 | 14 | `14-RBAC与安全.md` | `14-RBAC与安全\` | 多用户权限 + kubeconfig | 6h | ★★★ | ☐ |
-| 15 | `15-资源管理与HPA.md` | `15-资源管理与HPA\` | OOM 复现 + HPA 压测 | 5h | ★★★ | ☐ |
+| 15 | `15-资源管理与HPA.md` | `15-资源管理与HPA\` | OOM 复现 + HPA 压测 | 5h | ★★★ | ✅ |
 | 16 | `16-监控与日志.md` | `16-监控与日志\` | kube-prometheus-stack 全套 | 6h | ★★★ | ☐ |
 | 17 | `17-Helm包管理.md` | `17-Helm包管理\` | 从零编写完整 Chart | 6h | ★★★ | ☐ |
 | 18 | `18-CRD与Operator.md` | `18-CRD与Operator\` | 自定义 Website 资源 | 5h | ★★★★ | ☐ |
