@@ -3,6 +3,20 @@
 // 来源：https://github.com/yannh/kubernetes-json-schema
 {
   "lsp": {
+    "clangd": {
+      "binary": {
+        "arguments": [
+          "--query-driver=C:/Users/felix/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/bin/g++.exe",
+          "--background-index"
+        ]
+      },
+      "initialization_options": {
+        "fallbackFlags": [
+          "--target=x86_64-w64-mingw32",
+          "-std=c++17"
+        ]
+      }
+    },
     "yaml-language-server": {
       "settings": {
         "yaml": {
